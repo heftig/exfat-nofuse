@@ -1,18 +1,20 @@
-/************************************************************************/
-/*                                                                      */
-/*  PROJECT : exFAT & FAT12/16/32 File System                           */
-/*  FILE    : exfat_blkdev.c                                            */
-/*  PURPOSE : exFAT Block Device Driver Glue Layer                      */
-/*                                                                      */
-/*----------------------------------------------------------------------*/
-/*  NOTES                                                               */
-/*                                                                      */
-/*----------------------------------------------------------------------*/
-/*  REVISION HISTORY (Ver 0.9)                                          */
-/*                                                                      */
-/*  - 2010.11.15 [Joosun Hahn] : first writing                          */
-/*                                                                      */
-/************************************************************************/
+/*
+ *  Copyright (C) 2012-2013 Samsung Electronics Co., Ltd.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 #include <linux/blkdev.h>
 
@@ -23,25 +25,9 @@
 #include "exfat_api.h"
 #include "exfat_super.h"
 
-/*----------------------------------------------------------------------*/
-/*  Constant & Macro Definitions                                        */
-/*----------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------*/
-/*  Global Variable Definitions                                         */
-/*----------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------*/
-/*  Local Variable Definitions                                          */
-/*----------------------------------------------------------------------*/
-
-/*======================================================================*/
-/*  Function Definitions                                                */
-/*======================================================================*/
-
 INT32 bdev_init(void)
 {
-  return(FFS_SUCCESS);
+	return(FFS_SUCCESS);
 }
 
 INT32 bdev_shutdown(void)
@@ -78,12 +64,13 @@ INT32 bdev_close(struct super_block *sb)
 INT32 bdev_read(struct super_block *sb, UINT32 secno, struct buffer_head **bh, UINT32 num_secs, INT32 read)
 {
 	BD_INFO_T *p_bd = &(EXFAT_SB(sb)->bd_info);
+	FS_INFO_T *p_fs = &(EXFAT_SB(sb)->fs_info);
 #if EXFAT_CONFIG_KERNEL_DEBUG
 	struct exfat_sb_info *sbi = EXFAT_SB(sb);
 	long flags = sbi->debug_flags;
 
 	if (flags & EXFAT_DEBUGFLAGS_ERROR_RW)	return (FFS_MEDIAERR);
-#endif /* EXFAT_CONFIG_KERNEL_DEBUG */
+#endif
 
 	if (!p_bd->opened) return(FFS_MEDIAERR);
 
@@ -96,7 +83,8 @@ INT32 bdev_read(struct super_block *sb, UINT32 secno, struct buffer_head **bh, U
 
 	if (*bh) return(FFS_SUCCESS);
 
-	WARN_ONCE(1, "EXFAT: Out of memory\n");
+	WARN(!p_fs->dev_ejected, 
+		"[EXFAT] No bh, device seems wrong or to be ejected.\n");
 
 	return(FFS_MEDIAERR);
 }
@@ -106,12 +94,13 @@ INT32 bdev_write(struct super_block *sb, UINT32 secno, struct buffer_head *bh, U
 	INT32 count;
 	struct buffer_head *bh2;
 	BD_INFO_T *p_bd = &(EXFAT_SB(sb)->bd_info);
+	FS_INFO_T *p_fs = &(EXFAT_SB(sb)->fs_info);
 #if EXFAT_CONFIG_KERNEL_DEBUG
 	struct exfat_sb_info *sbi = EXFAT_SB(sb);
 	long flags = sbi->debug_flags;
 
 	if (flags & EXFAT_DEBUGFLAGS_ERROR_RW)	return (FFS_MEDIAERR);
-#endif /* EXFAT_CONFIG_KERNEL_DEBUG */
+#endif
 
 	if (!p_bd->opened) return(FFS_MEDIAERR);
 
@@ -128,7 +117,7 @@ INT32 bdev_write(struct super_block *sb, UINT32 secno, struct buffer_head *bh, U
 		bh2 = __getblk(sb->s_bdev, secno, count);
 
 		if (bh2 == NULL)
-			return (FFS_MEDIAERR);
+			goto no_bh;
 
 		lock_buffer(bh2);
 		MEMCPY(bh2->b_data, bh->b_data, count);
@@ -137,12 +126,18 @@ INT32 bdev_write(struct super_block *sb, UINT32 secno, struct buffer_head *bh, U
 		unlock_buffer(bh2);
 		if (sync && (sync_dirty_buffer(bh2) != 0)) {
 			__brelse(bh2);
-			return (FFS_MEDIAERR);
+			goto no_bh;
 		}
 		__brelse(bh2);
 	}
 
 	return(FFS_SUCCESS);
+
+no_bh:
+	WARN(!p_fs->dev_ejected, 
+		"[EXFAT] No bh, device seems wrong or to be ejected.\n");
+
+	return (FFS_MEDIAERR);
 }
 
 INT32 bdev_sync(struct super_block *sb)
@@ -153,11 +148,9 @@ INT32 bdev_sync(struct super_block *sb)
 	long flags = sbi->debug_flags;
 
 	if (flags & EXFAT_DEBUGFLAGS_ERROR_RW)	return (FFS_MEDIAERR);
-#endif /* EXFAT_CONFIG_KERNEL_DEBUG */
+#endif
 
 	if (!p_bd->opened) return(FFS_MEDIAERR);
 
 	return sync_blockdev(sb->s_bdev);
 }
-
-/* end of exfat_blkdev.c */

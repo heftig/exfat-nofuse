@@ -1,18 +1,20 @@
-/************************************************************************/
-/*                                                                      */
-/*  PROJECT : exFAT & FAT12/16/32 File System                           */
-/*  FILE    : exfat_upcase.c                                            */
-/*  PURPOSE : exFAT Up-case Table                                       */
-/*                                                                      */
-/*----------------------------------------------------------------------*/
-/*  NOTES                                                               */
-/*                                                                      */
-/*----------------------------------------------------------------------*/
-/*  REVISION HISTORY (Ver 0.9)                                          */
-/*                                                                      */
-/*  - 2010.11.15 [Joosun Hahn] : first writing                          */
-/*                                                                      */
-/************************************************************************/
+/*
+ *  Copyright (C) 2012-2013 Samsung Electronics Co., Ltd.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 #include "exfat_config.h"
 #include "exfat_global.h"
@@ -386,5 +388,3 @@ UINT8 uni_upcase[NUM_UPCASE<<1] = {
 	0xF2, 0xFF, 0xF3, 0xFF, 0xF4, 0xFF, 0xF5, 0xFF, 0xF6, 0xFF, 0xF7, 0xFF, 0xF8, 0xFF, 0xF9, 0xFF,
 	0xFA, 0xFF, 0xFB, 0xFF, 0xFC, 0xFF, 0xFD, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF
 };
-
-/* end of exfat_upcase.c */
