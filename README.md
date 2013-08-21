@@ -1,10 +1,25 @@
 exfat-nofuse
 ============
 
-Linux non-fuse read/write kernel driver for the exFat file system.
-
-Tested and works against kernel version 3.8.11. Versions after 3.9.0 give an error about mutex_lock, 
-I hope someone will fix it later.
+Linux non-fuse read/write kernel driver for the exFAT file system.<br />
+Originally ported from android kernel v3.0.
 
 
-Free software for the free minds!
+Kudos to ksv1986 for the mutex patch!<br />
+Thanks to JackNorris for being awesome and providing the clear_inode() patch.<br />
+<br />
+Big thanks to lqs for completing the driver!
+
+
+Special thanks to github user AndreiLux for spreading the word about the leak!<br />
+
+
+Installation:
+> make<br />
+> make install
+
+To load the driver manually, run this as root:
+> modprobe exfat
+
+
+Free Software for the Free Minds!
